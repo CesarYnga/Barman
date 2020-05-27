@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'org.jetbrains.dokka'
 
 android {
     compileSdkVersion 29
@@ -31,6 +32,26 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+
+    dokka {
+        outputFormat = 'html'
+        outputDirectory = "$buildDir/dokka"
+    }
+}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+task androidJavadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set("javadoc")
+    from "$buildDir/javadoc"
+}
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    from android.sourceSets.getByName("main").java.srcDirs
 }
 
 dependencies {
@@ -39,8 +60,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
+    api 'com.cesarynga.barman:barman-generator:1.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    api project(path: ':barman-generator')
 }
+
+apply from: "${rootProject.projectDir}/scripts/publish.gradle"

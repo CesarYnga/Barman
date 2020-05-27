@@ -1,0 +1,70 @@
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = GROUP_ID
+                artifactId = POM_ARTIFACT_ID
+                version = VERSION_NAME
+                artifact(tasks.getByName("androidJavadocJar"))
+                artifact(tasks.getByName("androidSourcesJar"))
+                pom {
+                    name.set(POM_LIBRARY_NAME)
+                    description.set(POM_LIBRARY_DESCRIPTION)
+                    url.set(POM_URL)
+                    licenses {
+                        license {
+                            name.set(POM_LICENSE_NAME)
+                            url.set(POM_LICENSE_URL)
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set(POM_DEVELOPER_ID)
+                            name.set(POM_DEVELOPER_NAME)
+                            email.set(POM_DEVELOPER_EMAIL)
+                        }
+                    }
+                    scm {
+                        connection.set(POM_SCM_CONNECTION)
+                        developerConnection.set(POM_SCM_DEV_CONNECTION)
+                        url.set(POM_SCM_URL)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Bintray
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ['release']
+    configurations = ['archives']
+    override = true
+    pkg {
+        repo = BINTRAY_REPO
+        name = BINTRAY_PKG
+        licenses = ["Apache-2.0"]
+        vcsUrl = POM_URL
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            name = VERSION_NAME
+            desc = POM_LIBRARY_DESCRIPTION
+            released = new Date()
+            vcsTag = VERSION_NAME
+        }
+    }
+}
