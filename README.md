@@ -1,6 +1,15 @@
 # Barman
+Android Barcode library based on [ZXing][1] written in Kotlin.
 
-Android Barcode library based on ZXing written in Kotlin.
+## Download
+Add the dependency you want to use into your module `build.gradle` file.
+```groovy
+// core library
+implementation 'com.cesarynga.barman:barman-generator:1.0.0'
+
+// or kotlin extension
+implementation 'com.cesarynga.barman:barman-generator-ktx:1.0.0' 
+```
 
 ## Usage
 
@@ -80,3 +89,5 @@ License
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+[1]: https://github.com/zxing/zxing
