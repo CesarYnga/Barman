@@ -5,7 +5,6 @@ import android.graphics.Color
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.*
-import java.util.concurrent.TimeUnit
 
 /**
  * Barcode bitmaps generation
@@ -40,53 +39,42 @@ class Barman {
 
     /**
      * Generate a bitmap representing the [content] encoded with the [format].
+     *
      * @param content The content to encode in the barcode
      * @param format The barcode format to generate
-     * @param width The preferred width of the bitmap in pixels
-     * @param height The preferred height of the bitmap in pixels
+     * @param dimensions The preferred dimensions of the bitmap
      * @return [Bitmap] representing encoded barcode image
      */
-    fun generateBitmap(content: String, format: BarmanCodeFormat, width: Int, height: Int): Bitmap {
-        val bitMatrix = encode(content, format, width, height)
+    fun generateBitmap(content: String, format: BarmanCodeFormat, dimensions: Dimensions = Dimensions(0, 0),): Bitmap {
+        val bitMatrix = encode(content, format, dimensions.width, dimensions.height)
         return createBitmap(bitMatrix)
     }
 
     /**
-     * Suspend function that works the same as [generateBitmap].
-     * @param content The content to encode in the barcode
-     * @param format The barcode format to generate
-     * @param width The preferred width of the bitmap in pixels
-     * @param height The preferred height of the bitmap in pixels
-     * @param dispatcher The coroutine dispatcher used to execute the barcode bitmap generation process
-     * @return [Bitmap] representing encoded barcode image
-     */
-    suspend fun generateBitmapSuspended(
-        content: String,
-        format: BarmanCodeFormat,
-        width: Int,
-        height: Int,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): Bitmap = withContext(dispatcher) {
-        generateBitmap(content, format, width, height)
-    }
-
-    /**
      * Same as [generateBitmap] but executed in a background thread using a coroutine.
+     *
      * @param content The content to encode in the barcode
      * @param format The barcode format to generate
-     * @param width The preferred width of the bitmap in pixels
-     * @param height The preferred height of the bitmap in pixels
+     * @param dimensions The preferred dimensions of the bitmap
+     * @param dispatcher The coroutine dispatcher used to execute the barcode bitmap generation process
      * @param block Block to be executed after bitmap decoding finished and pass the resulting bitmap as its param
      * @return [Job] used in the coroutine that can be use to cancel it
      */
     fun generateBitmapAsync(
         content: String,
         format: BarmanCodeFormat,
-        width: Int,
-        height: Int,
+        dimensions: Dimensions = Dimensions(0, 0),
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
         block: (Bitmap) -> Unit
     ) = coroutineScope.launch {
-        val bitmap = generateBitmapSuspended(content, format, width, height)
+        val bitmap = withContext(dispatcher) {
+            generateBitmap(content, format, dimensions)
+        }
         block(bitmap)
     }
+
+    /**
+     * Width and height in pixels for the barcode bitmap
+     */
+    data class Dimensions(val width: Int, val height: Int)
 }

@@ -2,9 +2,7 @@
     <string name="app_name">Barman Sample</string>
     <string-array name="sample_types">
         <item>Sync</item>
-        <item>Sync KTX</item>
         <item>Async</item>
         <item>Async KTX</item>
-        <item>Suspended</item>
     </string-array>
 </resources>

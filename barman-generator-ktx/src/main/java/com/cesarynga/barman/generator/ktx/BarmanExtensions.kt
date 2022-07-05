@@ -6,12 +6,15 @@ import android.widget.ImageView
 import androidx.core.graphics.scale
 import com.cesarynga.barman.generator.Barman
 import com.cesarynga.barman.generator.BarmanCodeFormat
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 
 /**
  * Shows a barcode bitmap representing the [content] encoded with the [format].
  * If width and/or height stored in [dimensions] are less than or equal to 0,
- * then they will take the corresponding dimensions of the current [ImageView].
+ * then they will take the corresponding dimension of the current [ImageView].
+ * Barcode generation process run in the main thread.
+ *
+ * @receiver an instance of [ImageView]
  * @param content The content to encode in the barcode
  * @param format The barcode format to generate
  * @param dimensions The preferred dimensions of the bitmap
@@ -19,12 +22,12 @@ import kotlinx.coroutines.Job
 fun ImageView.loadBarcode(
     content: String,
     format: BarmanCodeFormat,
-    dimensions: BarmanDimensions = BarmanDimensions(0, 0)
+    dimensions: Barman.Dimensions = Barman.Dimensions(0, 0)
 ) {
     val barman = Barman()
     val bmpWidth = if (dimensions.width > 0) dimensions.width else this.width
     val bmpHeight = if (dimensions.height > 0) dimensions.height else this.height
-    val bitmap = barman.generateBitmap(content, format, bmpWidth, bmpHeight)
+    val bitmap = barman.generateBitmap(content, format, Barman.Dimensions(bmpWidth, bmpHeight))
     setImageBitmap(scaleBitmap(bitmap, this.width, this.height))
 }
 
@@ -32,22 +35,31 @@ fun ImageView.loadBarcode(
  * Same as [loadBarcode] but executed in background using a coroutine.
  * If width and/or height stored in [dimensions] are less than or equal to 0,
  * then they will take the corresponding dimensions of the current [ImageView].
+ *
+ * @receiver an instance of [ImageView]
  * @param content The content to encode in the barcode
  * @param format The barcode format to generate
  * @param dimensions The preferred dimensions of the bitmap
+ * @param dispatcher The coroutine dispatcher used to execute the barcode bitmap generation process
  * @return [Job] used in the coroutine that can be use to cancel it
  */
 fun ImageView.loadBarcodeAsync(
     content: String,
     format: BarmanCodeFormat,
-    dimensions: BarmanDimensions = BarmanDimensions(0, 0),
+    dimensions: Barman.Dimensions = Barman.Dimensions(0, 0),
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
     onFinished: (() -> Unit)? = null
 ): Job {
+    val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     val barman = Barman()
     val bmpWidth = if (dimensions.width > 0) dimensions.width else this.width
     val bmpHeight = if (dimensions.height > 0) dimensions.height else this.height
-    return barman.generateBitmapAsync(content, format, bmpWidth, bmpHeight) {
-        setImageBitmap(scaleBitmap(it, this.width, this.height))
+    return coroutineScope.launch {
+        val resultBmp = withContext(dispatcher) {
+            val bitmap = barman.generateBitmap(content, format, Barman.Dimensions(bmpWidth, bmpHeight))
+            scaleBitmap(bitmap, this@loadBarcodeAsync.width, this@loadBarcodeAsync.height)
+        }
+        setImageBitmap(resultBmp)
         onFinished?.invoke()
     }
 }
@@ -86,10 +98,7 @@ private fun calculateInSampleSize(
         }
     }
 
+    Log.d("Barman", "in sample size: $inSampleSize")
+
     return inSampleSize
 }
-
-/**
- * Width and height in pixels for the barcode bitmap
- */
-data class BarmanDimensions(val width: Int, val height: Int)
