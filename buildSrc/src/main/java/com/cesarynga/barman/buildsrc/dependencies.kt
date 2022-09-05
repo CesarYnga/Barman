@@ -5,11 +5,13 @@ object Versions {
 }
 
 object Libs {
-    const val androidGradlePlugin = "com.android.tools.build:gradle:7.2.1"
+    const val androidGradlePlugin = "com.android.tools.build:gradle:7.2.2"
     const val jdkDesugar = "com.android.tools:desugar_jdk_libs:1.1.5"
 
     const val junit = "junit:junit:4.13.2"
     const val robolectric = "org.robolectric:robolectric:4.8"
+
+    const val dokka = "org.jetbrains.dokka:dokka-gradle-plugin:1.7.0"
 
     const val material3 = "com.google.android.material:material:1.6.0-alpha03"
     const val truth = "com.google.truth:truth:1.1.3"

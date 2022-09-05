@@ -1,5 +1,4 @@
 import com.cesarynga.barman.buildsrc.Libs
-import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     id 'com.android.library'
@@ -15,8 +14,6 @@ android {
     defaultConfig {
         minSdk 26
         targetSdk 31
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
